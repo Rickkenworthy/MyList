@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" class="h-full">
 <head>
   <meta charset="UTF-8">
   <title>My Checklist</title>
@@ -11,15 +11,21 @@
     /* Reserve space for Lucide icons to avoid CLS */
     img.icon { width: 1.25rem; height: 1.25rem; }
   </style>
+  <script>
+    // Enable dark mode based on the user’s OS preference
+    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
+      document.documentElement.classList.add('dark');
+    }
+  </script>
 </head>
-<body class="bg-gray-50 font-sans text-gray-800">
+<body class="h-full bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-100 font-sans">
 
   <!-- Header -->
-  <header class="p-4 bg-white shadow-sm flex items-center justify-between">
-    <h1 class="text-xl font-semibold">My Checklist</h1>
-    <button id="addBtn" class="flex items-center space-x-1 text-blue-600 hover:text-blue-800">
+  <header class="p-4 bg-white dark:bg-gray-800 shadow-sm flex items-center justify-between">
+    <h1 class="text-xl font-semibold text-lg md:text-base">My Checklist</h1>
+    <button id="addBtn" class="flex items-center space-x-1 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">
       <img src="https://unpkg.com/lucide-static@latest/icons/plus.svg" alt="Add" class="icon">
-      <span>Add Item</span>
+      <span class="text-base md:text-sm">Add Item</span>
     </button>
   </header>
 
@@ -30,12 +36,12 @@
 
   <!-- Add‑item modal -->
   <div id="modal" class="fixed inset-0 bg-black/30 flex items-center justify-center hidden">
-    <div class="bg-white rounded-lg shadow-xl p-4 w-80">
-      <h2 class="text-lg font-medium mb-2">New Checklist Item</h2>
+    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-4 w-80">
+      <h2 class="text-lg font-medium mb-2 text-gray-900 dark:text-gray-100">New Checklist Item</h2>
       <input id="newItemText" type="text" placeholder="Item description"
-             class="w-full p-2 border rounded mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500">
+             class="w-full p-2 border rounded mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
       <div class="flex justify-end space-x-2">
-        <button id="cancelBtn" class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">Cancel</button>
+        <button id="cancelBtn" class="px-3 py-1 bg-gray-200 dark:bg-gray-600 rounded hover:bg-gray-300 dark:hover:bg-gray-500">Cancel</button>
         <button id="saveBtn" class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700">Save</button>
       </div>
     </div>
@@ -60,11 +66,11 @@
       list.innerHTML = '';
       state.forEach((item, i) => {
         const li = document.createElement('li');
-        li.className = 'flex items-center space-x-3 p-2 bg-white rounded-lg shadow-sm';
+        li.className = 'flex items-center space-x-3 p-2 bg-white dark:bg-gray-800 rounded-lg shadow-sm';
         li.innerHTML = `
-          <input type="checkbox" class="form-checkbox h-5 w-5 text-blue-600 rounded" data-index="${i}" ${item.checked ? 'checked' : ''}>
-          <span class="flex-1 ${item.checked ? 'line-through' : ''}">${item.text}</span>
-          <button data-index="${i}" class="text-red-500 hover:text-red-700">
+          <input type="checkbox" class="form-checkbox h-5 w-5 text-blue-600 dark:text-blue-400 rounded" data-index="${i}" ${item.checked ? 'checked' : ''}>
+          <span class="flex-1 ${item.checked ? 'line-through' : ''} text-base md:text-sm text-gray-900 dark:text-gray-100">${item.text}</span>
+          <button data-index="${i}" class="text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300">
             <img src="https://unpkg.com/lucide-static@latest/icons/trash-2.svg" alt="Delete" class="icon">
           </button>
         `;
@@ -72,7 +78,7 @@
       });
     }
 
-    // ---------- Initial Data ----------
+    // ---------- Default Tasks ----------
     const DEFAULT_TASKS = [
       { text: 'Proceeds from JAG Sale to NW', checked: false },
       { text: 'Proceeds from MINI Sale to NW', checked: false },
@@ -148,4 +154,4 @@
     });
   </script>
 </body>
-</html>“Add checklist page”
+</html>
