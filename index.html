@@ -1,0 +1,151 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>My Checklist</title>
+  <!-- Tailwind CSS (browser build) -->
+  <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
+  <!-- Inter font (Tailwind default) -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
+  <style>
+    /* Reserve space for Lucide icons to avoid CLS */
+    img.icon { width: 1.25rem; height: 1.25rem; }
+  </style>
+</head>
+<body class="bg-gray-50 font-sans text-gray-800">
+
+  <!-- Header -->
+  <header class="p-4 bg-white shadow-sm flex items-center justify-between">
+    <h1 class="text-xl font-semibold">My Checklist</h1>
+    <button id="addBtn" class="flex items-center space-x-1 text-blue-600 hover:text-blue-800">
+      <img src="https://unpkg.com/lucide-static@latest/icons/plus.svg" alt="Add" class="icon">
+      <span>Add Item</span>
+    </button>
+  </header>
+
+  <!-- Main checklist container -->
+  <main class="max-w-2xl mx-auto p-4">
+    <ul id="checklist" class="space-y-2"></ul>
+  </main>
+
+  <!-- Add‑item modal -->
+  <div id="modal" class="fixed inset-0 bg-black/30 flex items-center justify-center hidden">
+    <div class="bg-white rounded-lg shadow-xl p-4 w-80">
+      <h2 class="text-lg font-medium mb-2">New Checklist Item</h2>
+      <input id="newItemText" type="text" placeholder="Item description"
+             class="w-full p-2 border rounded mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500">
+      <div class="flex justify-end space-x-2">
+        <button id="cancelBtn" class="px-3 py-1 bg-gray-200 rounded hover:bg-gray-300">Cancel</button>
+        <button id="saveBtn" class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700">Save</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // ---------- Storage ----------
+    const STORAGE_KEY = 'myChecklistState';
+
+    function loadState() {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      return raw ? JSON.parse(raw) : null;
+    }
+
+    function saveState(state) {
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+    }
+
+    // ---------- Render ----------
+    function render(state) {
+      const list = document.getElementById('checklist');
+      list.innerHTML = '';
+      state.forEach((item, i) => {
+        const li = document.createElement('li');
+        li.className = 'flex items-center space-x-3 p-2 bg-white rounded-lg shadow-sm';
+        li.innerHTML = `
+          <input type="checkbox" class="form-checkbox h-5 w-5 text-blue-600 rounded" data-index="${i}" ${item.checked ? 'checked' : ''}>
+          <span class="flex-1 ${item.checked ? 'line-through' : ''}">${item.text}</span>
+          <button data-index="${i}" class="text-red-500 hover:text-red-700">
+            <img src="https://unpkg.com/lucide-static@latest/icons/trash-2.svg" alt="Delete" class="icon">
+          </button>
+        `;
+        list.appendChild(li);
+      });
+    }
+
+    // ---------- Initial Data ----------
+    const DEFAULT_TASKS = [
+      { text: 'Proceeds from JAG Sale to NW', checked: false },
+      { text: 'Proceeds from MINI Sale to NW', checked: false },
+      { text: 'Proceeds from House Sale to NW', checked: false },
+      { text: 'Move Reward Saver to Flex', checked: false },
+      { text: 'Transfer both to Anz', checked: false },
+      { text: 'Transfer RBS to NW', checked: false },
+      { text: 'Cancel M&S Card', checked: false },
+      { text: 'Sell mini to Nathan', checked: false },
+      { text: 'Check monies paid in NW', checked: false },
+      { text: 'laim Mini Ins back', checked: false },
+      { text: 'Cancel Gym', checked: false },
+      { text: 'Inform Broadband', checked: false },
+      { text: 'Inform Sky', checked: false },
+      { text: 'Switch Mobiles', checked: false },
+      { text: 'Inform Gas/Elec', checked: false },
+      { text: 'inform Water', checked: false },
+      { text: 'Inform Council Tax', checked: false },
+      { text: 'Inform House Ins', checked: false },
+      { text: 'Order Skip', checked: false },
+      { text: 'Inform Tax Office', checked: false },
+      { text: 'Inform StatePension', checked: false },
+      { text: 'Inform Fire Pension', checked: false },
+      { text: 'Inform JK Pension', checked: false },
+      { text: 'Book travel insurance', checked: false },
+      { text: 'Book flights', checked: false },
+      { text: 'Renew Aus Visa', checked: false }
+    ];
+
+    // ---------- Load / Init ----------
+    let state = loadState();
+    if (!state) {
+      state = DEFAULT_TASKS;
+      saveState(state);
+    }
+    render(state);
+
+    // ---------- Event Listeners ----------
+    document.getElementById('addBtn').addEventListener('click', () => {
+      document.getElementById('modal').classList.remove('hidden');
+    });
+
+    document.getElementById('cancelBtn').addEventListener('click', () => {
+      document.getElementById('modal').classList.add('hidden');
+      document.getElementById('newItemText').value = '';
+    });
+
+    document.getElementById('saveBtn').addEventListener('click', () => {
+      const text = document.getElementById('newItemText').value.trim();
+      if (!text) return;
+      state.push({ text, checked: false });
+      saveState(state);
+      render(state);
+      document.getElementById('modal').classList.add('hidden');
+      document.getElementById('newItemText').value = '';
+    });
+
+    // Delegate clicks for checkboxes and delete buttons
+    document.getElementById('checklist').addEventListener('click', e => {
+      const target = e.target.closest('input[type="checkbox"], button');
+      if (!target) return;
+      const idx = Number(target.dataset.index);
+      if (target.type === 'checkbox') {
+        state[idx].checked = target.checked;
+        saveState(state);
+        render(state);
+      } else {
+        // Delete button
+        state.splice(idx, 1);
+        saveState(state);
+        render(state);
+      }
+    });
+  </script>
+</body>
+</html>“Add checklist page”
