@@ -1,157 +1,346 @@
 <!DOCTYPE html>
-<html lang="en" class="h-full">
+<html lang="en">
 <head>
-  <meta charset="UTF-8">
-  <title>My Checklist</title>
-  <!-- Tailwind CSS (browser build) -->
-  <script src="https://unpkg.com/@tailwindcss/browser@4"></script>
-  <!-- Inter font (Tailwind default) -->
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap" rel="stylesheet">
-  <style>
-    /* Reserve space for Lucide icons to avoid CLS */
-    img.icon { width: 1.25rem; height: 1.25rem; }
-  </style>
-  <script>
-    // Enable dark mode based on the user’s OS preference
-    if (window.matchMedia('(prefers-color-scheme: dark)').matches) {
-      document.documentElement.classList.add('dark');
-    }
-  </script>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>On-Arrival Australia Checklist</title>
+<style>
+  :root {
+    --bg: #f6f5f2;
+    --card: #ffffff;
+    --ink: #1f2a24;
+    --muted: #6b7570;
+    --accent: #2f6f4f;
+    --accent-light: #e6f0ea;
+    --border: #e2e0da;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    background: var(--bg);
+    color: var(--ink);
+    padding: 24px 14px 60px;
+  }
+  .wrap { max-width: 640px; margin: 0 auto; }
+  h1 { font-size: 1.4rem; margin: 0 0 2px; letter-spacing: -0.01em; }
+  .subtitle { color: var(--muted); font-size: 0.9rem; margin-bottom: 18px; }
+
+  .sync-card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 18px 16px;
+    margin-bottom: 20px;
+  }
+  .sync-card h2 { font-size: 1rem; margin: 0 0 6px; }
+  .sync-card p { color: var(--muted); font-size: 0.85rem; margin: 0 0 14px; line-height: 1.4; }
+  .sync-row { display: flex; gap: 8px; margin-bottom: 10px; }
+  .sync-row input {
+    flex: 1;
+    padding: 10px 12px;
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    font-size: 1rem;
+    letter-spacing: 0.05em;
+  }
+  .sync-row button {
+    background: var(--accent);
+    color: white;
+    border: none;
+    padding: 10px 16px;
+    border-radius: 8px;
+    font-size: 0.9rem;
+    cursor: pointer;
+  }
+  .sync-btn-secondary { background: none; border: 1px solid var(--border); color: var(--ink); }
+  .sync-status { font-size: 0.8rem; color: var(--accent); display: flex; align-items: center; gap: 6px; }
+  .dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); }
+  .dot.offline { background: #c77b3f; }
+
+  .progress-wrap {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 12px;
+    padding: 12px 16px;
+    margin-bottom: 20px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+  }
+  .progress-bar { flex: 1; height: 8px; background: var(--accent-light); border-radius: 999px; overflow: hidden; }
+  .progress-fill { height: 100%; background: var(--accent); width: 0%; transition: width 0.3s ease; }
+  .progress-text { font-size: 0.85rem; color: var(--muted); white-space: nowrap; min-width: 48px; text-align: right; }
+
+  .section { background: var(--card); border: 1px solid var(--border); border-radius: 14px; margin-bottom: 14px; overflow: hidden; }
+  .section-header {
+    padding: 14px 16px 10px;
+    font-weight: 600;
+    font-size: 0.95rem;
+    color: var(--accent);
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+  }
+  .section-header .count { font-size: 0.75rem; color: var(--muted); font-weight: 400; }
+  ul.items { list-style: none; margin: 0; padding: 6px 0; }
+  li.item {
+    display: flex;
+    align-items: flex-start;
+    gap: 10px;
+    padding: 10px 16px;
+    cursor: pointer;
+    -webkit-tap-highlight-color: transparent;
+    user-select: none;
+  }
+  li.item:active { background: var(--accent-light); }
+  .checkbox {
+    flex-shrink: 0;
+    width: 22px;
+    height: 22px;
+    border-radius: 6px;
+    border: 2px solid #c7cdc8;
+    margin-top: 1px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    transition: all 0.15s ease;
+  }
+  .checkbox.checked { background: var(--accent); border-color: var(--accent); }
+  .checkbox svg { width: 13px; height: 13px; opacity: 0; transform: scale(0.5); transition: all 0.15s ease; }
+  .checkbox.checked svg { opacity: 1; transform: scale(1); }
+  .item-text { font-size: 0.94rem; line-height: 1.4; transition: color 0.15s ease, opacity 0.15s ease; }
+  li.item.done .item-text { color: var(--muted); text-decoration: line-through; opacity: 0.75; }
+
+  .footer-note { text-align: center; color: var(--muted); font-size: 0.78rem; margin-top: 18px; }
+  .reset-btn {
+    display: block;
+    margin: 22px auto 0;
+    background: none;
+    border: 1px solid var(--border);
+    color: var(--muted);
+    padding: 8px 16px;
+    border-radius: 999px;
+    font-size: 0.8rem;
+    cursor: pointer;
+  }
+  .reset-btn:active { background: var(--accent-light); }
+  .hidden { display: none !important; }
+</style>
 </head>
-<body class="h-full bg-gray-50 dark:bg-gray-900 text-gray-800 dark:text-gray-100 font-sans">
+<body>
+<div class="wrap">
+  <h1>On-Arrival Australia Checklist</h1>
+  <div class="subtitle">Mudgeeraba / Gold Coast — Visa, Medicare &amp; Dental setup</div>
 
-  <!-- Header -->
-  <header class="p-4 bg-white dark:bg-gray-800 shadow-sm flex items-center justify-between">
-    <h1 class="text-xl font-semibold text-lg md:text-base">My Checklist</h1>
-    <button id="addBtn" class="flex items-center space-x-1 text-blue-600 dark:text-blue-400 hover:text-blue-800 dark:hover:text-blue-300">
-      <img src="https://unpkg.com/lucide-static@latest/icons/plus.svg" alt="Add" class="icon">
-      <span class="text-base md:text-sm">Add Item</span>
-    </button>
-  </header>
-
-  <!-- Main checklist container -->
-  <main class="max-w-2xl mx-auto p-4">
-    <ul id="checklist" class="space-y-2"></ul>
-  </main>
-
-  <!-- Add‑item modal -->
-  <div id="modal" class="fixed inset-0 bg-black/30 flex items-center justify-center hidden">
-    <div class="bg-white dark:bg-gray-800 rounded-lg shadow-xl p-4 w-80">
-      <h2 class="text-lg font-medium mb-2 text-gray-900 dark:text-gray-100">New Checklist Item</h2>
-      <input id="newItemText" type="text" placeholder="Item description"
-             class="w-full p-2 border rounded mb-4 focus:outline-none focus:ring-2 focus:ring-blue-500 dark:border-gray-600 dark:bg-gray-700 dark:text-gray-100">
-      <div class="flex justify-end space-x-2">
-        <button id="cancelBtn" class="px-3 py-1 bg-gray-200 dark:bg-gray-600 rounded hover:bg-gray-300 dark:hover:bg-gray-500">Cancel</button>
-        <button id="saveBtn" class="px-3 py-1 bg-blue-600 text-white rounded hover:bg-blue-700">Save</button>
-      </div>
+  <div class="sync-card" id="syncSetup">
+    <h2>Sync across devices</h2>
+    <p>Create a sync code once, then enter the same code on any other device to link it. Anyone with the code can view and tick this list.</p>
+    <div class="sync-row">
+      <input id="codeInput" type="text" placeholder="Enter or paste a sync code" maxlength="24">
+    </div>
+    <div class="sync-row">
+      <button id="joinBtn">Use this code</button>
+      <button id="generateBtn" class="sync-btn-secondary">Generate new code</button>
     </div>
   </div>
 
-  <script>
-    // ---------- Storage ----------
-    const STORAGE_KEY = 'myChecklistState';
+  <div class="sync-card hidden" id="syncStatusCard">
+    <div class="sync-status"><span class="dot" id="statusDot"></span><span id="statusText">Connecting…</span></div>
+    <p style="margin-top:8px;">Sync code: <strong id="currentCode"></strong> — <a href="#" id="changeCodeLink">use a different code</a></p>
+  </div>
 
-    function loadState() {
-      const raw = localStorage.getItem(STORAGE_KEY);
-      return raw ? JSON.parse(raw) : null;
-    }
+  <div class="progress-wrap hidden" id="progressWrap">
+    <div class="progress-bar"><div class="progress-fill" id="progressFill"></div></div>
+    <div class="progress-text" id="progressText">0/0</div>
+  </div>
 
-    function saveState(state) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
-    }
+  <div id="sections"></div>
 
-    // ---------- Render ----------
-    function render(state) {
-      const list = document.getElementById('checklist');
-      list.innerHTML = '';
-      state.forEach((item, i) => {
-        const li = document.createElement('li');
-        li.className = 'flex items-center space-x-3 p-2 bg-white dark:bg-gray-800 rounded-lg shadow-sm';
-        li.innerHTML = `
-          <input type="checkbox" class="form-checkbox h-5 w-5 text-blue-600 dark:text-blue-400 rounded" data-index="${i}" ${item.checked ? 'checked' : ''}>
-          <span class="flex-1 ${item.checked ? 'line-through' : ''} text-base md:text-sm text-gray-900 dark:text-gray-100">${item.text}</span>
-          <button data-index="${i}" class="text-red-500 dark:text-red-400 hover:text-red-700 dark:hover:text-red-300">
-            <img src="https://unpkg.com/lucide-static@latest/icons/trash-2.svg" alt="Delete" class="icon">
-          </button>
-        `;
-        list.appendChild(li);
-      });
-    }
+  <button class="reset-btn hidden" id="resetBtn">Reset all ticks</button>
+  <div class="footer-note">Ticks save automatically and sync live across every device using this code.</div>
+</div>
 
-    // ---------- Default Tasks ----------
-    const DEFAULT_TASKS = [
-      { text: 'Proceeds from JAG Sale to NW', checked: false },
-      { text: 'Proceeds from MINI Sale to NW', checked: false },
-      { text: 'Proceeds from House Sale to NW', checked: false },
-      { text: 'Move Reward Saver to Flex', checked: false },
-      { text: 'Transfer both to Anz', checked: false },
-      { text: 'Transfer RBS to NW', checked: false },
-      { text: 'Cancel M&S Card', checked: false },
-      { text: 'Sell mini to Nathan', checked: false },
-      { text: 'Check monies paid in NW', checked: false },
-      { text: 'Claim Mini Ins back', checked: false },
-      { text: 'Cancel Gym', checked: false },
-      { text: 'Inform Broadband', checked: false },
-      { text: 'Inform Sky', checked: false },
-      { text: 'Switch Mobiles', checked: false },
-      { text: 'Inform Gas/Elec', checked: false },
-      { text: 'inform Water', checked: false },
-      { text: 'Inform Council Tax', checked: false },
-      { text: 'Inform House Ins', checked: false },
-      { text: 'Order Skip', checked: false },
-      { text: 'Inform Tax Office', checked: false },
-      { text: 'Inform StatePension', checked: false },
-      { text: 'Inform Fire Pension', checked: false },
-      { text: 'Inform JK Pension', checked: false },
-      { text: 'Book travel insurance', checked: false },
-      { text: 'Book flights', checked: false },
-      { text: 'Renew Aus Visa', checked: false }
-    ];
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-app.js";
+import { getFirestore, doc, setDoc, onSnapshot } from "https://www.gstatic.com/firebasejs/10.13.0/firebase-firestore.js";
 
-    // ---------- Load / Init ----------
-    let state = loadState();
-    if (!state) {
-      state = DEFAULT_TASKS;
-      saveState(state);
-    }
-    render(state);
+// ---- PASTE YOUR OWN FIREBASE CONFIG HERE (see setup instructions) ----
+const firebaseConfig = {
+  apiKey: "AIzaSyCIbEuVLOnruXPcwhdoiD53Wh1poEO3-Vo",
+  authDomain: "aus-list.firebaseapp.com",
+  projectId: "aus-list",
+  storageBucket: "aus-list.firebasestorage.app",
+  messagingSenderId: "124325390655",
+  appId: "1:124325390655:web:c1b1e5c1a5ae9287720b8a"
+};
+// ------------------------------------------------------------------
 
-    // ---------- Event Listeners ----------
-    document.getElementById('addBtn').addEventListener('click', () => {
-      document.getElementById('modal').classList.remove('hidden');
+const app = initializeApp(firebaseConfig);
+const db = getFirestore(app);
+
+const SECTIONS = [
+  { title: "Before Leaving the UK", items: [
+    "Finish dental work (check-up, fillings, crowns) with UK dentist",
+    "Get GP summary letter listing medications & medical history",
+    "Take copies of passports",
+    "Print: 651 visa confirmation, passport photo page, GP letter",
+    "Pack up to 3-month supply of tamsulosin & verapamil in original UK boxes with pharmacy labels visible",
+    "Sort out a mobile phone plan for arrival"
+  ]},
+  { title: "Arrival — First 48 Hours", items: [
+    "Clear border control with UK passport + 651 visa confirmation; declare medicines on arrival card",
+    "Check entry recorded correctly on VEVO",
+    "Set up Australian myGov account (use son's mobile for SMS verification)",
+    "Lodge Subclass 804 (Aged Parent) visa application with migration agent ASAP",
+    "Wait for Bridging Visa A (BVA) grant notice email",
+    "Print 804 lodgement acknowledgement + BVA grant notice"
+  ]},
+  { title: "Week 1 — Medicare", items: [
+    "Visit Robina or Southport Services Australia centre with UK passport + 804 lodgement receipt",
+    "Enrol in Medicare under UK/Australia Reciprocal Health Care Agreement",
+    "Get a temporary/digital Medicare card",
+    "Link Medicare to myGov account"
+  ]},
+  { title: "Week 1–2 — Prescriptions", items: [
+    "Book GP appointment (Mudgeeraba Family Medical Centre or Robina Town Medical Centre)",
+    "Give GP the UK summary letter to get local prescriptions written",
+    "Fill scripts at a discount pharmacy (Chemist Warehouse / Priceline, Robina Town Centre) — PBS caps at $25/box"
+  ]},
+  { title: "Week 2 — Dental & Extras Cover", items: [
+    "Buy an Extras-only policy (Bupa or Medibank) — dental, optical, physio",
+    "Confirm in writing when 2-month (routine) and 12-month (major work) waiting periods start",
+    "Ask insurer for a preferred-provider dentist nearby"
+  ]}
+];
+
+const LOCAL_CODE_KEY = "arrival-checklist-sync-code";
+let state = {};
+let currentCode = null;
+let unsubscribe = null;
+
+function itemId(sIdx, iIdx) { return sIdx + "-" + iIdx; }
+
+function render() {
+  const container = document.getElementById("sections");
+  container.innerHTML = "";
+  let total = 0, checked = 0;
+
+  SECTIONS.forEach((section, sIdx) => {
+    total += section.items.length;
+    const sectionEl = document.createElement("div");
+    sectionEl.className = "section";
+
+    const doneCount = section.items.filter((_, iIdx) => state[itemId(sIdx, iIdx)]).length;
+    checked += doneCount;
+
+    const header = document.createElement("div");
+    header.className = "section-header";
+    header.innerHTML = `<span>${section.title}</span><span class="count">${doneCount}/${section.items.length}</span>`;
+    sectionEl.appendChild(header);
+
+    const ul = document.createElement("ul");
+    ul.className = "items";
+
+    section.items.forEach((text, iIdx) => {
+      const id = itemId(sIdx, iIdx);
+      const isChecked = !!state[id];
+      const li = document.createElement("li");
+      li.className = "item" + (isChecked ? " done" : "");
+      li.innerHTML = `
+        <div class="checkbox ${isChecked ? "checked" : ""}">
+          <svg viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"></polyline></svg>
+        </div>
+        <div class="item-text">${text}</div>
+      `;
+      li.addEventListener("click", () => toggleItem(id));
+      ul.appendChild(li);
     });
 
-    document.getElementById('cancelBtn').addEventListener('click', () => {
-      document.getElementById('modal').classList.add('hidden');
-      document.getElementById('newItemText').value = '';
-    });
+    sectionEl.appendChild(ul);
+    container.appendChild(sectionEl);
+  });
 
-    document.getElementById('saveBtn').addEventListener('click', () => {
-      const text = document.getElementById('newItemText').value.trim();
-      if (!text) return;
-      state.push({ text, checked: false });
-      saveState(state);
-      render(state);
-      document.getElementById('modal').classList.add('hidden');
-      document.getElementById('newItemText').value = '';
-    });
+  document.getElementById("progressText").textContent = `${checked}/${total}`;
+  document.getElementById("progressFill").style.width = total ? `${(checked / total) * 100}%` : "0%";
+}
 
-    // Delegate clicks for checkboxes and delete buttons
-    document.getElementById('checklist').addEventListener('click', e => {
-      const target = e.target.closest('input[type="checkbox"], button');
-      if (!target) return;
-      const idx = Number(target.dataset.index);
-      if (target.type === 'checkbox') {
-        state[idx].checked = target.checked;
-        saveState(state);
-        render(state);
-      } else {
-        // Delete button
-        state.splice(idx, 1);
-        saveState(state);
-        render(state);
-      }
-    });
-  </script>
+function toggleItem(id) {
+  state[id] = !state[id];
+  render();
+  saveToCloud();
+}
+
+function saveToCloud() {
+  if (!currentCode) return;
+  setDoc(doc(db, "checklists", currentCode), { state }).catch(err => {
+    console.error("Save failed:", err);
+    setStatus(false);
+  });
+}
+
+function setStatus(online) {
+  const dot = document.getElementById("statusDot");
+  const text = document.getElementById("statusText");
+  dot.classList.toggle("offline", !online);
+  text.textContent = online ? "Live — synced" : "Connection issue, retrying…";
+}
+
+function connectToCode(code) {
+  if (unsubscribe) unsubscribe();
+  currentCode = code;
+  localStorage.setItem(LOCAL_CODE_KEY, code);
+
+  document.getElementById("syncSetup").classList.add("hidden");
+  document.getElementById("syncStatusCard").classList.remove("hidden");
+  document.getElementById("progressWrap").classList.remove("hidden");
+  document.getElementById("resetBtn").classList.remove("hidden");
+  document.getElementById("currentCode").textContent = code;
+
+  const ref = doc(db, "checklists", code);
+  unsubscribe = onSnapshot(ref, (snap) => {
+    setStatus(true);
+    if (snap.exists()) {
+      state = snap.data().state || {};
+    } else {
+      state = {};
+      setDoc(ref, { state }).catch(() => {});
+    }
+    render();
+  }, (err) => {
+    console.error("Sync error:", err);
+    setStatus(false);
+  });
+}
+
+function generateCode() {
+  const code = Math.random().toString(36).slice(2, 8).toUpperCase();
+  document.getElementById("codeInput").value = code;
+  connectToCode(code);
+}
+
+document.getElementById("joinBtn").addEventListener("click", () => {
+  const code = document.getElementById("codeInput").value.trim().toUpperCase();
+  if (code) connectToCode(code);
+});
+document.getElementById("generateBtn").addEventListener("click", generateCode);
+document.getElementById("changeCodeLink").addEventListener("click", (e) => {
+  e.preventDefault();
+  document.getElementById("syncSetup").classList.remove("hidden");
+  document.getElementById("syncStatusCard").classList.add("hidden");
+});
+document.getElementById("resetBtn").addEventListener("click", () => {
+  state = {};
+  render();
+  saveToCloud();
+});
+
+const savedCode = localStorage.getItem(LOCAL_CODE_KEY);
+if (savedCode) {
+  document.getElementById("codeInput").value = savedCode;
+  connectToCode(savedCode);
+}
+</script>
 </body>
-</html>“How Good is my List”)
+</html>
